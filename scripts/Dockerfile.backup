@@ -1,0 +1,41 @@
+FROM alpine:latest
+
+# Install required packages
+RUN apk add --no-cache \
+    postgresql-client \
+    aws-cli \
+    curl \
+    docker-cli \
+    bash \
+    cronie \
+    jq \
+    gzip \
+    tar
+
+# Create backup user and directories
+RUN adduser -D -s /bin/bash backup \
+    && mkdir -p /backups /scripts \
+    && chown -R backup:backup /backups /scripts
+
+# Copy backup scripts
+COPY backup.sh /scripts/backup.sh
+COPY restore.sh /scripts/restore.sh
+COPY cleanup.sh /scripts/cleanup.sh
+COPY notify.sh /scripts/notify.sh
+
+# Make scripts executable
+RUN chmod +x /scripts/*.sh \
+    && chown backup:backup /scripts/*.sh
+
+# Switch to backup user
+USER backup
+
+# Set up cron job
+RUN echo "${BACKUP_SCHEDULE:-0 2 * * *} /scripts/backup.sh" | crontab -
+
+# Health check
+HEALTHCHECK --interval=30m --timeout=10s --start-period=5s --retries=3 \
+    CMD [ -f /backups/latest.backup ] || exit 1
+
+# Start cron in foreground
+CMD ["crond", "-f", "-d", "8"]

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "ask": [
+      "Read(!C:\\Users\\abbs\\OneDrive\\Desktop\\New folder (29)/**)",
+      "Edit(!C:\\Users\\abbs\\OneDrive\\Desktop\\New folder (29)/**)"
+    ],
+    "allow": [
+      "Read(C:\\Users\\abbs\\OneDrive\\Desktop\\New folder (29)/**)",
+      "Edit(C:\\Users\\abbs\\OneDrive\\Desktop\\New folder (29)/**)"
+    ]
+  },
+  "memoryImport": {},
+  "monitoring": {}
+}

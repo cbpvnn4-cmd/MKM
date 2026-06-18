@@ -1,0 +1,300 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: 'Rubik', 'Noto Sans Arabic', 'Cairo', 'Tajawal', 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    font-family: 'Rubik', 'Noto Sans Arabic', 'Cairo', 'Tajawal', 'Inter', -apple-system, BlinkMacSystemFont,
+      'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
+}
+
+@layer components {
+  .glass-effect {
+    @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-700/20;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent;
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.15);
+  }
+
+  .input-focus {
+    @apply focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-200;
+  }
+}
+
+/* Dark mode styles */
+@layer base {
+  .dark body {
+    @apply bg-gray-900 text-gray-100;
+  }
+
+  .dark input,
+  .dark textarea,
+  .dark select {
+    @apply bg-gray-800 text-gray-100 border-gray-700;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    @apply text-gray-400;
+  }
+
+  /* Card & Container Styles */
+  .dark .bg-white {
+    @apply bg-gray-800;
+  }
+
+  .dark .bg-gray-50 {
+    @apply bg-gray-700;
+  }
+
+  .dark .bg-gray-100 {
+    @apply bg-gray-700;
+  }
+
+  .dark .border-gray-200 {
+    @apply border-gray-700;
+  }
+
+  .dark .border-gray-300 {
+    @apply border-gray-600;
+  }
+
+  /* Text Colors */
+  .dark .text-gray-900 {
+    @apply text-gray-100;
+  }
+
+  .dark .text-gray-800 {
+    @apply text-gray-200;
+  }
+
+  .dark .text-gray-700 {
+    @apply text-gray-300;
+  }
+
+  .dark .text-gray-500 {
+    @apply text-gray-400;
+  }
+
+  .dark .text-gray-600 {
+    @apply text-gray-400;
+  }
+
+  /* Hover States */
+  .dark .hover\:bg-gray-50:hover {
+    @apply bg-gray-700;
+  }
+
+  .dark .hover\:bg-gray-100:hover {
+    @apply bg-gray-700;
+  }
+
+  .dark .hover\:text-gray-700:hover {
+    @apply text-gray-300;
+  }
+
+  .dark .hover\:text-gray-900:hover {
+    @apply text-gray-100;
+  }
+
+  /* Shadows */
+  .dark .shadow-md {
+    @apply shadow-gray-900/50;
+  }
+
+  .dark .shadow-lg {
+    @apply shadow-gray-900/50;
+  }
+
+  .dark .shadow-xl {
+    @apply shadow-gray-900/50;
+  }
+
+  /* Tables */
+  .dark table thead {
+    @apply bg-gray-700;
+  }
+
+  .dark table tbody {
+    @apply bg-gray-800;
+  }
+
+  .dark .divide-gray-200 > * {
+    @apply divide-gray-700;
+  }
+}
+
+/* Responsive Zoom Support */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1.25rem;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 48;
+}
+@layer base {
+  /* Better text rendering at all zoom levels */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Prevent layout shift on zoom */
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* Ensure sidebar stays responsive at zoom levels */
+  @media (min-width: 1024px) {
+    aside {
+      min-width: clamp(280px, 20vw, 340px);
+      max-width: clamp(280px, 25vw, 340px);
+    }
+  }
+
+  /* Better responsive breakwords for Arabic text */
+  * {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Smooth scaling for fixed elements */
+  [class*="fixed"] {
+    will-change: transform;
+  }
+}
+
+/* Arabic Text Improvements */
+@layer base {
+  /* Better Arabic text rendering */
+  html[lang="ar"],
+  html[dir="rtl"] {
+    font-family: 'Rubik', 'Noto Sans Arabic', 'Cairo', 'Tajawal', 'Inter', sans-serif;
+  }
+
+  /* Improve readability for Arabic headings */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Rubik', 'Noto Sans Arabic', 'Cairo', 'Tajawal', 'Inter', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  /* Better spacing for Arabic paragraphs */
+  p {
+    line-height: 1.75;
+  }
+
+  /* Improve button text rendering */
+  button {
+    font-family: 'Rubik', 'Noto Sans Arabic', 'Cairo', 'Tajawal', 'Inter', sans-serif;
+    font-weight: 600;
+  }
+
+  /* Better input/select rendering for Arabic */
+  input, select, textarea {
+    font-family: 'Rubik', 'Noto Sans Arabic', 'Cairo', 'Tajawal', 'Inter', sans-serif;
+  }
+
+  /* Table text improvements */
+  table {
+    font-family: 'Rubik', 'Noto Sans Arabic', 'Cairo', 'Tajawal', 'Inter', sans-serif;
+  }
+
+  th {
+    font-weight: 700;
+  }
+
+  td {
+    font-weight: 400;
+  }
+}

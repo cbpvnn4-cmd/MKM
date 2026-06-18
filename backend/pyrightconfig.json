@@ -1,0 +1,15 @@
+{
+  "typeCheckingMode": "basic",
+  "reportGeneralTypeIssues": "warning",
+  "reportArgumentType": "warning",
+  "reportOptionalMemberAccess": "warning",
+  "reportOptionalSubscript": "warning",
+  "reportOptionalCall": "warning",
+  "pythonVersion": "3.10",
+  "pythonPlatform": "All",
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/alembic"
+  ]
+}

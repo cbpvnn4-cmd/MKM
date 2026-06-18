@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+        
+    - name: Run backend tests
+      run: |
+        cd backend
+        python -m pytest tests -v
+        
+    - name: Run backend coverage
+      run: |
+        cd backend
+        coverage run -m pytest
+        coverage report
+        coverage html
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm install
+        
+    - name: Run frontend tests
+      run: |
+        cd frontend
+        npm run test
+        
+    - name: Run frontend coverage
+      run: |
+        cd frontend
+        npm run test:coverage
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+        
+    - name: Run backend linting
+      run: |
+        cd backend
+        flake8 .
+        
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm install
+        
+    - name: Run frontend linting
+      run: |
+        cd frontend
+        npx eslint src/
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, lint]
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+        
+    - name: Build backend
+      run: |
+        cd backend
+        python main.py --check
+        
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm install
+        
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build

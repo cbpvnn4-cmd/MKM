@@ -1,0 +1,26 @@
+[run]
+source = app
+omit = 
+    */tests/*
+    */venv/*
+    */env/*
+    */.venv/*
+    */__pycache__/*
+    */migrations/*
+    */alembic/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if settings.DEBUG
+    if app.debug
+
+show_missing = True
+precision = 2
+
+[html]
+directory = htmlcov

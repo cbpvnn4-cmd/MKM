@@ -1,0 +1,144 @@
+groups:
+  - name: elevator_system_alerts
+    rules:
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}"
+
+      # Disk space low
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_free_bytes{fstype!="tmpfs"}) / node_filesystem_size_bytes{fstype!="tmpfs"} * 100 > 85
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk space is running low"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }} mount {{ $labels.mountpoint }}"
+
+      # Backend service down
+      - alert: BackendServiceDown
+        expr: up{job="elevator-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend service is down"
+          description: "Elevator backend service has been down for more than 1 minute"
+
+      # Database connection issues
+      - alert: DatabaseConnectionHigh
+        expr: pg_stat_activity_count > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database connections"
+          description: "Database has {{ $value }} active connections"
+
+      # High response time
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }} seconds"
+
+      # Error rate high
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100 > 5
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }}% over the last 5 minutes"
+
+      # Redis down
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis service has been down for more than 1 minute"
+
+      # SSL certificate expiring
+      - alert: SSLCertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}"
+
+      # Website down
+      - alert: WebsiteDown
+        expr: probe_success{job="blackbox"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Website is down"
+          description: "Website {{ $labels.instance }} has been down for more than 1 minute"
+
+  - name: business_metrics_alerts
+    rules:
+      # Unusual profit distribution pattern
+      - alert: UnusualProfitDistribution
+        expr: increase(profit_distribution_total[1h]) > 1000000
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Unusual profit distribution detected"
+          description: "Profit distribution of {{ $value }} SAR in the last hour exceeds normal thresholds"
+
+      # High expense spike
+      - alert: HighExpenseSpike
+        expr: increase(expenses_total[1h]) > 500000
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High expense spike detected"
+          description: "Expenses of {{ $value }} SAR in the last hour are unusually high"
+
+      # Low inventory levels
+      - alert: LowInventoryLevels
+        expr: inventory_quantity < 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low inventory level"
+          description: "Product {{ $labels.product_name }} has only {{ $value }} units remaining"
+
+      # Service ticket backlog
+      - alert: ServiceTicketBacklog
+        expr: service_tickets_open > 50
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High service ticket backlog"
+          description: "There are {{ $value }} open service tickets"

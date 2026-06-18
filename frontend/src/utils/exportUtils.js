@@ -1,0 +1,340 @@
+﻿import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+
+// Ensure Arabic font is registered for jsPDF outputs
+import { ensureArabicFont, ARABIC_FONT_NAME } from './arabic-font';
+
+/**
+ * Export data to PDF with enhanced features
+ * @param {Array} data - Array of data objects
+ * @param {Array} columns - Array of column definitions {header, dataKey}
+ * @param {string} title - Report title
+ * @param {string} filename - Output filename
+ * @param {Object} options - Additional options
+ */
+export const exportToPDF = (data, columns, title, filename, options = {}) => {
+  const doc = new jsPDF({
+    orientation: options.orientation || 'portrait',
+    unit: 'mm',
+    format: options.format || 'a4'
+  });
+
+  ensureArabicFont(doc);
+
+  const isRTL = options.direction !== 'ltr';
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const marginLeft = options.marginLeft ?? 14;
+  const marginRight = options.marginRight ?? 14;
+  const topMargin = options.topMargin ?? 20;
+  const baseX = isRTL ? pageWidth - marginRight : marginLeft;
+  const align = isRTL ? 'right' : 'left';
+  const locale = options.locale || 'en-US'; // Always use en-US for Gregorian dates
+
+  const formatNumber = (value) => {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    if (typeof value === 'number') {
+      return value.toLocaleString(locale, {
+        minimumFractionDigits: options.decimals ?? 0,
+        maximumFractionDigits: options.decimals ?? 0
+      });
+    }
+
+    const numeric = Number(value);
+    if (!Number.isNaN(numeric)) {
+      return numeric.toLocaleString(locale, {
+        minimumFractionDigits: options.decimals ?? 0,
+        maximumFractionDigits: options.decimals ?? 0
+      });
+    }
+
+    return String(value);
+  };
+
+  const currentDate = new Date();
+  const dateStr = currentDate.toLocaleDateString(locale);
+  const timeStr = currentDate.toLocaleTimeString(locale, { hour12: false });
+
+  let currentY = topMargin;
+
+  if (options.companyName) {
+    doc.setFontSize(14);
+    doc.setFont(ARABIC_FONT_NAME, 'bold');
+    doc.text(options.companyName, baseX, currentY, { align });
+    currentY += 8;
+  }
+
+  doc.setFontSize(18);
+  doc.setFont(ARABIC_FONT_NAME, 'bold');
+  doc.text(title, baseX, currentY, { align });
+  currentY += 10;
+
+  doc.setFontSize(10);
+  doc.setFont(ARABIC_FONT_NAME, 'normal');
+  const reportDateLabel = options.labels?.reportDate || (isRTL ? 'تاريخ التقرير' : 'Report Date');
+  const creationTimeLabel = options.labels?.creationTime || (isRTL ? 'وقت الإنشاء' : 'Creation Time');
+  doc.text(`${reportDateLabel}: ${dateStr}`, baseX, currentY, { align });
+  currentY += 5;
+  doc.text(`${creationTimeLabel}: ${timeStr}`, baseX, currentY, { align });
+  currentY += 8;
+
+  if (options.summary && Object.keys(options.summary).length > 0) {
+    doc.setFontSize(12);
+    doc.setFont(ARABIC_FONT_NAME, 'bold');
+    doc.text(options.summaryTitle || (isRTL ? 'الملخص' : 'Summary'), baseX, currentY, { align });
+    currentY += 7;
+
+    doc.setFontSize(10);
+    doc.setFont(ARABIC_FONT_NAME, 'normal');
+    Object.entries(options.summary).forEach(([key, value]) => {
+      const formattedValue = formatNumber(value);
+      const line = isRTL ? `${formattedValue} : ${key}` : `${key}: ${formattedValue}`;
+      doc.text(line, baseX, currentY, { align });
+      currentY += 6;
+    });
+
+    currentY += 4;
+  }
+
+  const tableHead = [columns.map((column) => column.header)];
+  const tableBody = data.map((row) =>
+    columns.map((column) => formatNumber(row[column.dataKey]))
+  );
+
+  doc.autoTable({
+    startY: currentY,
+    head: tableHead,
+    body: tableBody,
+    styles: {
+      font: ARABIC_FONT_NAME,
+      fontSize: options.tableFontSize || 10,
+      cellPadding: 3,
+      halign: align,
+      textColor: [41, 41, 41],
+      lineColor: [200, 200, 200],
+      lineWidth: 0.1,
+      fillColor: [255, 255, 255]
+    },
+    headStyles: {
+      font: ARABIC_FONT_NAME,
+      halign: 'center',
+      fontStyle: 'bold',
+      fillColor: options.headFillColor || [34, 139, 34],
+      textColor: [255, 255, 255]
+    },
+    bodyStyles: {
+      font: ARABIC_FONT_NAME,
+      halign: align
+    },
+    columnStyles: columns.reduce((accumulator, column, index) => {
+      accumulator[index] = accumulator[index] || {};
+      if (column.isNumeric) {
+        accumulator[index].halign = isRTL ? 'left' : 'right';
+      } else {
+        accumulator[index].halign = align;
+      }
+      accumulator[index].font = ARABIC_FONT_NAME;
+      return accumulator;
+    }, {}),
+    margin: {
+      top: topMargin,
+      right: marginRight,
+      left: marginLeft
+    },
+    didParseCell: (hookData) => {
+      hookData.cell.styles.font = ARABIC_FONT_NAME;
+    }
+  });
+
+  const pageCount = doc.internal.getNumberOfPages();
+  const footerText =
+    options.footerText ||
+    (isRTL ? 'سري - تم التوليد بواسطة نظام إدارة الشركة' : 'Confidential - Generated by the company management system');
+
+  for (let page = 1; page <= pageCount; page += 1) {
+    doc.setPage(page);
+    doc.setFontSize(9);
+    doc.setFont(ARABIC_FONT_NAME, 'normal');
+
+    const footerY = pageHeight - 10;
+
+    if (isRTL) {
+      doc.text(footerText, pageWidth - marginRight, footerY, { align: 'right' });
+      doc.text(`صفحة ${page} من ${pageCount}`, marginLeft, footerY, { align: 'left' });
+    } else {
+      doc.text(footerText, marginLeft, footerY, { align: 'left' });
+      doc.text(`Page ${page} of ${pageCount}`, pageWidth - marginRight, footerY, { align: 'right' });
+    }
+  }
+
+  doc.save(filename);
+};
+
+/**
+ * Export data to Excel with enhanced features
+ * @param {Array} data - Array of data objects
+ * @param {string} sheetName - Worksheet name
+ * @param {string} filename - Output filename
+ * @param {Object} options - Additional options
+ */
+export const exportToExcel = (data, sheetName, filename, options = {}) => {
+  const wb = XLSX.utils.book_new();
+
+  const hasRows = Array.isArray(data) && data.length > 0;
+  const firstColumnKey = hasRows ? Object.keys(data[0])[0] : 'Summary';
+  let wsData = hasRows ? [...data] : [];
+
+  if (options.summary) {
+    const summaryRows = [];
+    summaryRows.push({ [firstColumnKey]: 'الملخص' });
+    summaryRows.push({});
+
+    Object.entries(options.summary).forEach(([key, value]) => {
+      const summaryRow = {};
+      summaryRow[firstColumnKey] = `${key}: ${value}`;
+      summaryRows.push(summaryRow);
+    });
+
+    summaryRows.push({});
+    wsData = [...summaryRows, ...wsData];
+  }
+
+  const ws = XLSX.utils.json_to_sheet(wsData);
+  XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
+
+  wb.Props = {
+    Title: options.title || 'تقرير النظام',
+    Subject: 'تقرير صادر من نظام الإدارة',
+    Author: 'نظام الإدارة',
+    CreatedDate: new Date()
+  };
+
+  XLSX.writeFile(wb, filename);
+};
+
+/**
+ * Export data to CSV (UTF-8)
+ * @param {Array} data - Array of objects
+ * @param {string} filename - Output filename (.csv)
+ */
+export const exportToCSV = (data, filename = 'export.csv') => {
+  const rows = Array.isArray(data) ? data : [];
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const csv = XLSX.utils.sheet_to_csv(ws);
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.download = filename;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+/**
+ * Print report directly
+ * @param {string} title - Report title
+ * @param {string} content - HTML content to print
+ * @param {Object} options - Print options
+ */
+export const printReport = (title, content, options = {}) => {
+  const printWindow = window.open('', '_blank');
+
+  const printContent = `
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${title}</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 20px;
+          direction: rtl;
+          text-align: right;
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 30px;
+          border-bottom: 2px solid #333;
+          padding-bottom: 20px;
+        }
+        .title {
+          font-size: 24px;
+          font-weight: bold;
+          margin-bottom: 10px;
+        }
+        .date {
+          font-size: 14px;
+          color: #666;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
+          font-size: 12px;
+        }
+        th, td {
+          border: 1px solid #ddd;
+          padding: 8px;
+          text-align: center;
+        }
+        th {
+          background-color: #f2f2f2;
+          font-weight: bold;
+        }
+        .footer {
+          margin-top: 30px;
+          text-align: center;
+          font-size: 10px;
+          color: #666;
+          border-top: 1px solid #ddd;
+          padding-top: 10px;
+        }
+        @media print {
+          body { margin: 0; }
+          .no-print { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="title">${title}</div>
+        <div class="date">
+          Report Date: ${new Date().toLocaleDateString('en-US')}<br>
+          Creation Time: ${new Date().toLocaleTimeString('en-US')}
+        </div>
+      </div>
+
+      ${content}
+
+      <div class="footer">
+        <p>تمت الطباعة بواسطة نظام الإدارة</p>
+      </div>
+
+      <script>
+        window.onload = function() {
+          window.print();
+          window.onafterprint = function() {
+            window.close();
+          };
+        };
+      </script>
+    </body>
+    </html>
+  `;
+
+  printWindow.document.write(printContent);
+  printWindow.document.close();
+};
+
+
+
+
+
+
+

@@ -1,0 +1,13 @@
+node_modules
+dist
+build
+coverage
+.cache
+.storybook
+.vscode
+.idea
+*.log
+.env
+.env.*
+.DS_Store
+Thumbs.db

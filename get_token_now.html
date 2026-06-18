@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔑 احصل على الرمز الآن</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 600px;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+        }
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-right: 5px solid #667eea;
+        }
+        .step h3 {
+            color: #764ba2;
+            margin-bottom: 10px;
+        }
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: monospace;
+        }
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        .success {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: none;
+        }
+        .error {
+            background: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: none;
+        }
+        .info {
+            background: #2196F3;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            direction: ltr;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔑 احصل على رمز المصادقة</h1>
+
+        <div class="step">
+            <h3>الطريقة 1: تسجيل دخول جديد (سريع)</h3>
+            <p>اسم المستخدم:</p>
+            <input type="text" id="username" value="admin" placeholder="admin">
+            <p>كلمة المرور:</p>
+            <input type="password" id="password" placeholder="أدخل كلمة المرور">
+            <button onclick="login()">🔑 تسجيل الدخول والحصول على الرمز</button>
+        </div>
+
+        <div id="successMsg" class="success"></div>
+        <div id="errorMsg" class="error"></div>
+
+        <div class="step">
+            <h3>الطريقة 2: نسخ من التطبيق الأساسي</h3>
+            <ol style="line-height: 2;">
+                <li>افتح التطبيق: <code>http://localhost:5173</code></li>
+                <li>سجل دخول إذا لم تكن مسجلاً</li>
+                <li>اضغط <code>F12</code></li>
+                <li>اذهب لـ <code>Console</code></li>
+                <li>اكتب: <code>localStorage.getItem('access_token')</code></li>
+                <li>انسخ الرمز</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>الرمز المحفوظ:</h3>
+            <input type="text" id="savedToken" readonly placeholder="سيظهر هنا بعد تسجيل الدخول">
+            <button onclick="copyToken()">📋 نسخ الرمز</button>
+            <button onclick="openTestPage()">🚀 افتح صفحة الاختبار مع الرمز</button>
+        </div>
+
+        <div class="info">
+            ℹ️ بعد الحصول على الرمز، ارجع لصفحة الاختبار والصقه في حقل "رمز المصادقة"
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!password) {
+                showError('يرجى إدخال كلمة المرور');
+                return;
+            }
+
+            try {
+                const formData = new URLSearchParams();
+                formData.append('username', username);
+                formData.append('password', password);
+
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const token = data.access_token;
+
+                    // حفظ الرمز
+                    localStorage.setItem('access_token', token);
+                    sessionStorage.setItem('access_token', token);
+                    document.getElementById('savedToken').value = token;
+
+                    showSuccess('✓ تم تسجيل الدخول بنجاح!\n\nالرمز: ' + token.substring(0, 50) + '...\n\nتم حفظ الرمز في localStorage و sessionStorage');
+                } else {
+                    const error = await response.json();
+                    showError('✗ فشل تسجيل الدخول: ' + (error.detail || 'خطأ غير معروف'));
+                }
+            } catch (error) {
+                showError('✗ خطأ في الاتصال: ' + error.message);
+            }
+        }
+
+        function copyToken() {
+            const token = document.getElementById('savedToken').value;
+            if (token) {
+                navigator.clipboard.writeText(token);
+                showSuccess('✓ تم نسخ الرمز!');
+            } else {
+                showError('✗ لا يوجد رمز لنسخه. سجل دخول أولاً');
+            }
+        }
+
+        function openTestPage() {
+            const token = document.getElementById('savedToken').value;
+            if (token) {
+                // فتح صفحة الاختبار
+                window.open('test_without_auth.html', '_blank');
+                showSuccess('✓ تم فتح صفحة الاختبار!\n\nالرمز محفوظ وجاهز للاستخدام.');
+            } else {
+                showError('✗ لا يوجد رمز. سجل دخول أولاً');
+            }
+        }
+
+        function showSuccess(msg) {
+            const el = document.getElementById('successMsg');
+            el.style.display = 'block';
+            el.textContent = msg;
+            document.getElementById('errorMsg').style.display = 'none';
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.style.display = 'block';
+            el.textContent = msg;
+            document.getElementById('successMsg').style.display = 'none';
+        }
+
+        // تحميل الرمز المحفوظ إذا كان موجوداً
+        window.onload = function() {
+            const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+            if (token) {
+                document.getElementById('savedToken').value = token;
+                showSuccess('✓ تم العثور على رمز محفوظ مسبقاً!');
+            }
+        };
+    </script>
+</body>
+</html>

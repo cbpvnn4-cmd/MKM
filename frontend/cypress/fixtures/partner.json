@@ -1,0 +1,9 @@
+{
+  "id": 3,
+  "name": "New Test Partner",
+  "national_id": "111222333",
+  "phone": "+1112223333",
+  "email": "newpartner@example.com",
+  "active": true,
+  "created_at": "2025-01-15T10:00:00Z"
+}
